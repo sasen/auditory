@@ -1,0 +1,7 @@
+*~
+audio/*
+DATA/*
+.DS_Store
+analysis/*~
+analysis/*.csv
+analysis/*.pyc
