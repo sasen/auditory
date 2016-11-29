@@ -21,7 +21,7 @@ for s = 1:length(stimnames)
   rs = rasters(stim_idx);
   mytimes = tTimes(stim_idx(1),:);
   totalTime = abs(mytimes(1)) + mytimes(end);  % in seconds
-  psth = hist([rs{:}], totalTime/binsize); 
+  psth = hist([rs{:}], totalTime/binsize); %%% THIS IS WRONG
 
   %%% Create and go through tag particles
   tags = strsplit(stim,'_');
