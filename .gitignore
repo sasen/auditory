@@ -5,3 +5,6 @@ DATA/*
 analysis/*~
 analysis/*.csv
 analysis/*.pyc
+analysis/.R*
+analysis/figures/
+analysis/old/
