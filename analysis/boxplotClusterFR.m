@@ -1,4 +1,5 @@
 function [bpfigh, ByFam, ByStat] = boxplotClusterFR(txtS,txtL)  %,plotparameters)
+% function [bpfigh, ByFam, ByStat] = boxplotClusterFR(txtS,txtL)
 % boxplotClusterFR   Plots distributions of firing rates (or any stat) grouping by Family & Statistics
 %   txtS, txtL (double, 15x40): firing rates from each trial, as produced by processClusterFR
 %        e.g., [base,txtS,txtL,motifs] = processClusterFR('sptrains_unit31.mat','B1040_3');
