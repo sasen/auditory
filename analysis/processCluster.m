@@ -1,6 +1,6 @@
-function [SILpsth, sTEXpsth, lTEXpsth, sMOTpsth, lMOTpsth] = processCluster(clu_fname, binsize)
+function [SILpsth, sTEXpsth, lTEXpsth, sMOTpsth, lMOTpsth] = processCluster(clu_fname, binsize,nReps)
 % processCluster computes lots of PSTHs for later plotting
-% [SILpsth, sTEXpsth, lTEXpsth, sMOTpsth, lMOTpsth] = processCluster(clu_fname, binsize)
+% [SILpsth, sTEXpsth, lTEXpsth, sMOTpsth, lMOTpsth] = processCluster(clu_fname, binsize,nReps)
 % clu_fname: str, matfile like 'sptrains_unit31.mat'
 % binsize: double, PSTH bin size in milliseconds (eg 0.002 for 2ms bins)
 % XXXXpsth: arrays with psths for...
@@ -41,7 +41,7 @@ for s = 1:length(stimnames)
     SILpsth = psth;
 
   else				     %% 3. handle textures
-    [isok, fam, stat, dur, id, cmapr, cmapcB, cmapcE] = parseStimName(stim);  
+    [isok, fam, stat, dur, id, cmapr, cmapcB, cmapcE] = parseStimName(stim,nReps);  
     if isok
       switch dur
         case 1,

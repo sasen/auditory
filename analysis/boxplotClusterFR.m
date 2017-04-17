@@ -1,9 +1,9 @@
-function [bpfigh, ByFam, ByStat] = boxplotClusterFR(txtS,txtL)  %,plotparameters)
-% function [bpfigh, ByFam, ByStat] = boxplotClusterFR(txtS,txtL)
+function [bpfigh, ByFam, ByStat] = boxplotClusterFR(txtS,txtL,nReps)  %,plotparameters)
+% function [bpfigh, ByFam, ByStat] = boxplotClusterFR(txtS,txtL,nReps)
 % boxplotClusterFR   Plots distributions of firing rates (or any stat) grouping by Family & Statistics
 %   txtS, txtL (double, 15x40): firing rates from each trial, as produced by processClusterFR
 %        e.g., [base,txtS,txtL,motifs] = processClusterFR('sptrains_unit31.mat','B1040_3');
-% ** Currently assumes 10 trials, 5 famililes (Applause, BubWater, Sparrows, Starlings, Wind),
+% ** Currently assumes 3 exemplars each, of 5 famililes (Applause, BubWater, Sparrows, Starlings, Wind),
 %    4 statistical models (Noise, Marginals, Full Stats, Originals)
 
 texturelabels = {'App','Bub','Spar','Star','Wind'};
@@ -16,10 +16,10 @@ ByFam = [App(:) Bub(:) Spar(:) Star(:) Wind(:)];
 ByFam(~isfinite(ByFam)) = NaN;
 
 statlabels = {'Noise','Marg','Full','Orig'};
-Noise = [txtS(:,1:10); txtL(:,1:10)];
-Marg = [txtS(:,11:20); txtL(:,11:20)];
-Full = [txtS(:,21:30); txtL(:,21:30)];
-Orig = [txtS(:,31:40); txtL(:,31:40)];
+Noise = [txtS(:,1:nReps); txtL(:,1:nReps)];
+Marg = [txtS(:,nReps+1:2*nReps); txtL(:,nReps+1:2*nReps)];
+Full = [txtS(:,2*nReps+1:3*nReps); txtL(:,2*nReps+1:3*nReps)];
+Orig = [txtS(:,3*nReps+1:4*nReps); txtL(:,3*nReps+1:4*nReps)];
 ByStat = [Noise(:) Marg(:) Full(:) Orig(:)];
 ByStat(~isfinite(ByStat)) = NaN;
 

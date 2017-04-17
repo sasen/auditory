@@ -1,4 +1,5 @@
-function [base_fr_trials, txtS, txtL, motifs] = processClusterFR(clu_fname,birdsite_nametag)
+function [base_fr_trials, txtS, txtL] = processClusterFR(clu_fname,birdsite_nametag,nReps)
+%function [base_fr_trials, txtS, txtL] = processClusterFR(clu_fname,birdsite_nametag,nReps)
 % processClusterFR computes FRs
 % [base_fr_trials, txtS, txtL, motifs] = processClusterFR(clu_fname, birdsite_nametag)
 % clu_fname: str, matfile like 'sptrains_unit31.mat'
@@ -20,8 +21,8 @@ base_fr_trials = fr(base_idx,:);	% grab firing rate of those trials
 base_fr_on = mean(base_fr_trials(:,2));  % fr rows: [pre on post]
 
 fr_on_norm = fr(:,2) / base_fr_on;  % normalized firing rate while stim is on, for each trial
-txtS = inf(3*5,4*10); % sorry FIXME
-txtL = inf(3*5,4*10); % sorry FIXME
+txtS = inf(3*5,4*nReps); % sorry FIXME
+txtL = inf(3*5,4*nReps); % sorry FIXME
 
 %% Go through each stimulus
 stimnames = unique(stims);
@@ -37,7 +38,7 @@ for s = 1:length(stimnames)
   elseif strcmp('silence',tags{1})   %% 2. skip silence
     % pass
   else				     %% 3. handle textures
-    [isok, fam, stat, dur, id, cmapr, cmapcB, cmapcE] = parseStimName(stim);  
+    [isok, fam, stat, dur, id, cmapr, cmapcB, cmapcE] = parseStimName(stim,nReps);  
     if isok
       textures(dur,fam,stat,id,:) = fr_on_norm(stim_idx);
       %% and make a colormap-able figure for each duration      
@@ -58,12 +59,12 @@ end  % for loop on each stim name
 
 scalemin = 0.1*min(fr_on_norm(find(fr_on_norm)));
 scalemax = 1.5*max(fr_on_norm);
-figure(1); imagesc(motifs, [scalemin scalemax])
-figure(2); clf; imagesc([txtS; inf(1,40); txtL], [scalemin scalemax])
+%figure(1); imagesc(motifs, [scalemin scalemax])
+figure(2); clf; imagesc([txtS; inf(1,4*nReps); txtL], [scalemin scalemax])
 title(sprintf('Cluster %s Texture FR',clu_fname(14:end-4)))
 xlabel(['Noise                     Marginals                    Full Stats                      Originals'])
 ylabel(['Wind   Star   Spar   Bub   App       Wind  Star    Spar    Bub     App'])
-fig_fname = fullfile('analysis','figures',birdsite_nametag, sprintf('txtFR_%s.png',clu_fname(14:end-4)) )
+fig_fname = fullfile('analysis','figures',birdsite_nametag, sprintf('txtFR_%s.png',clu_fname(14:end-4)) );
 saveas(gcf, fig_fname)
 
 % subplot(3,1,1); imshow(motifs,[scalemin,scalemax])

@@ -1,6 +1,7 @@
-function [isok, fam, stat, dur, id, cmaprow, cmapcolBeg, cmapcolEnd] = parseStimName(stim)
+function [isok, fam, stat, dur, id, cmaprow, cmapcolBeg, cmapcolEnd] = parseStimName(stim,nReps)
 % parseStimName helps figure out where in the results table to put this stimulus type
-% function [isok, fam, stat, dur, id] = parseStimName(stim)
+% function [isok, fam, stat, dur, id] = parseStimName(stim,nReps)
+% nReps = 5 or 10, sorry
 % isok = bool, true if okay to analyze, false o.w.
 % stim = str, name of a texture stimulus
 % fam = int, categorical texture family
@@ -8,7 +9,7 @@ function [isok, fam, stat, dur, id, cmaprow, cmapcolBeg, cmapcolEnd] = parseStim
 % dur = int, categorical duration
 % id = int, categorical texture exemplar
 
-nReps = 10;   % sorry. FIXME 
+%nReps = 10;   % sorry. FIXME 
 families = {'Applause','BubWater','Sparrows','Starlings','Wind'};     % 'longsong', 'flock1020'
 stats = {'noise','marg','full','norm'};   % 'orig'
 durations = {'s','l'}; % '7'     % this is known to be wrong in many cases!
