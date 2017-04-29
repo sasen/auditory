@@ -24,6 +24,11 @@ datdir = fullfile('DATA',birdsite_nametag);
 assert(exist(datdir,'dir')==7,'%s: %s directory cannot be found.\n',mfilename,datdir);
 resdir = fullfile('.','analysis','figures',birdsite_nametag);
 mkdir(resdir);   % in case doesn't already exist
+
+tsvfilename = fullfile(resdir,[birdsite_nametag,'_zfr_dataframe.txt']);
+fid = fopen(tsvfilename,'w');
+fprintf(fid, 'bird\tsite\tz\tlm\tap\tcluID\t');  % print dataframe column names (except stimnames)
+
 ww = what(datdir);
 for cnum = 1:numel(ww.mat)  % going through good clusters
   clu_fname = ww.mat{cnum};
@@ -31,8 +36,14 @@ for cnum = 1:numel(ww.mat)  % going through good clusters
   clu = str2double(cluStr);
 
   %% I. SPIKE RATE (only while stimulus on)
-%  [base, txtS, txtL, motifs] = processClusterFR(clu_fname, birdsite_nametag);
-  [base, txtS, txtL, ztxtS, ztxtL] = processClusterFR(clu_fname, birdsite_nametag,nReps);
+  [base, txtS, txtL, ztxtS, ztxtL, snamesS, snamesL] = processClusterFR(clu_fname, birdsite_nametag,nReps);
+  if cnum == 1
+    fprintf(fid,strjoin(snamesS','\t'));
+    fprintf(fid,strjoin(snamesS','\t'));  %%%% obvious crap! long has empty cellstr for stimuli not presented TODO FIXME
+%    assignin('base','snamesS',snamesS)
+%    assignin('base','snamesL',snamesL)
+    fprintf(fid,'some stim names!\n')
+  end
   txtS(~isfinite(txtS)) = NaN;  % missing data = nan
   txtL(~isfinite(txtL)) = NaN;
   ztxtS(~isfinite(ztxtS)) = NaN;
@@ -59,6 +70,14 @@ for cnum = 1:numel(ww.mat)  % going through good clusters
   n_bsStat(cnum,:) = nanmean([ByStatS;  ByStatL]);
   z_bsFam(cnum,:)  = nanmean([zByFamS;  zByFamL]);  % same for zscore
   z_bsStat(cnum,:) = nanmean([zByStatS; zByStatL]);
+  %---- for cluster x exemplar dataframe (avg over trials only)
+  n_fold_exemp(cnum,:) = nanmean( reshape([txtS;txtL]', nReps, nStats*nExemp*nFams*2));  % 2 is nDurations
+  zscore_exemp(cnum,:) = nanmean( reshape([ztxtS;ztxtL]', nReps, nStats*nExemp*nFams*2));
+  fprintf(fid,'%s\t%s\t%d\t%d\t%d\t%s\t data for each exemplar!\n',birdsite_nametag,birdsite_nametag,2500,1500,2700,cluStr);
+  for exem=1:numel(txtS)
+
+%  fprintf(fid,deal(zscore_exemp(cnum,:)))
+  end
 
 %   [figh,ByFam,ByStat] = boxplotClusterFR(txtS,txtL,nReps);
 %   figure(figh); suptitle([birdsite_nametag ' Clu ' cluStr])
@@ -79,6 +98,9 @@ for cnum = 1:numel(ww.mat)  % going through good clusters
 
 end % for each cluster
 
+fclose(fid);
+assignin('base','zscore_exemp',zscore_exemp)
+
 bsFamS = [birdsiteFamS zbirdsiteFamS];
 bsFamL = [birdsiteFamL zbirdsiteFamL];
 bsStatS = [birdsiteStatS zbirdsiteStatS];
@@ -87,36 +109,23 @@ bsStatL = [birdsiteStatL zbirdsiteStatL];
 
 grandboxplots_figh=figure();
 
-%%%%%  baseline-norm violin plots
-subplot(2,2,1), hold on  %% by family
-boxplot(log2(n_bsFam),'labels',texturelabels)
-distributionPlot(gca,log2(birdsiteFamS),'widthDiv',[2 1],'histOri','left','color','g','showMM',4,'xNames',texturelabels)
-distributionPlot(gca,log2(birdsiteFamL),'widthDiv',[2 2],'histOri','right','color','c','showMM',4)
-boxplot(log2(n_bsFam),'labels',texturelabels)
-ylabel('Log_2 nfold change')
-axis tight 
-title('By Texture Family')
-subplot(2,2,2), hold on  %% by stat model
-distributionPlot(gca,log2(birdsiteStatS),'widthDiv',[2 1],'histOri','left','color','g','showMM',4,'xNames',statlabels)
-distributionPlot(gca,log2(birdsiteStatL),'widthDiv',[2 2],'histOri','right','color','c','showMM',4)
-boxplot(log2(n_bsStat),'labels',statlabels)
-axis tight 
-title('By Statistical Model')
 
 %%%%% zscored violins
-subplot(2,2,3), hold on % by family
+subplot(1,2,1), hold on % by family
 distributionPlot(gca,zbirdsiteFamS,'widthDiv',[2 1],'histOri','left','color','g','showMM',4,'xNames',texturelabels)
 distributionPlot(gca,zbirdsiteFamL,'widthDiv',[2 2],'histOri','right','color','c','showMM',4)
 boxplot(z_bsFam,'labels',texturelabels)
+title('By Texture Family')
 axis tight 
-ylabel('z-scored')
-subplot(2,2,4), hold on % by stat model
+ylabel('z-scored Firing Rate')
+subplot(1,2,2), hold on % by stat model
 distributionPlot(gca,zbirdsiteStatS,'widthDiv',[2 1],'histOri','left','color','g','showMM',4,'xNames',statlabels)
 distributionPlot(gca,zbirdsiteStatL,'widthDiv',[2 2],'histOri','right','color','c','showMM',4)
 boxplot(z_bsStat,'labels',statlabels)
 axis tight 
+title('By Statistical Model')
 figure(grandboxplots_figh); suptitle([birdsite_nametag ' Grand Mean cluster firing rates'])
-saveas(grandboxplots_figh, fullfile('analysis','figures',birdsite_nametag, ['vlnFRboth_grandmean.png']));
+saveas(grandboxplots_figh, fullfile('analysis','figures',birdsite_nametag, ['vlnFR_grandmean.png']));
 
 %-------- old but useful
 % tAx = -2 + psthbinsize*[1:size(SILpsth,2)]; subplot(7,4,cnum), plot(tAx, SILpsth), title(['Cluster ' cluStr]), axis tight

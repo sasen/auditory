@@ -1,9 +1,9 @@
-function [base_fr_trials, txtS, txtL,ztxtS,ztxtL] = processClusterFR(clu_fname,birdsite_nametag,nReps)
-%function [base_fr_trials, txtS, txtL,ztxtS,ztxtL] = processClusterFR(clu_fname,birdsite_nametag,nReps)
+function [base_fr_trials, txtS, txtL,ztxtS,ztxtL,snamesS,snamesL] = processClusterFR(clu_fname,birdsite_nametag,nReps)
+%function [base_fr_trials, txtS, txtL,ztxtS,ztxtL,snamesS,snamesL] = processClusterFR(clu_fname,birdsite_nametag,nReps)
 % processClusterFR computes FRs 2 ways
 % clu_fname: str, matfile like 'sptrains_unit31.mat'
 % birdsite_nametag: str, directory, like B1040_3
-% nReps: int, number of repetitions for each trial, eg 5 or 10.
+% nReps: int, approx number of repetitions for each trial, eg 5 or 10. (will truncate more, and inf-pad if fewer)
 % base_fr_trials: silence
 % txtS, txtL: short, long texture firing rates while stim is on (baseline normalized n-fold change)
 % ztxtS, ztxtL: short, long texture firing rates while stim is on (raw FR, zscored)
@@ -36,6 +36,7 @@ stimnames = unique(stims);
 for s = 1:length(stimnames)
   stim = stimnames{s};
   stim_idx = find(strcmp(stim,stims)); % trials using that stim
+  fr_data = zfr_on(stim_idx); % firing rates of these trials
 
   %%% Create and go through tag particles
   tags = strsplit(stim,'_');
@@ -50,13 +51,24 @@ for s = 1:length(stimnames)
 %      textures(dur,fam,stat,id,:) = fr_on_norm(stim_idx);
 %      ztextures(dur,fam,stat,id,:) = zfr_on(stim_idx);
       %% and make a colormap-able figure for each duration      
+      nTrials = numel(stim_idx);
+      if nTrials ~= nReps
+        fprintf('%s: Warning, stim %s had %d trials rather than %d\n',mfilename,stim,nTrials,nReps);
+        if nTrials < nReps	  
+          fr_data = [reshape(fr_data,1,nTrials) inf(1,nReps-nTrials)];  % pad with infinities
+        else
+          fr_data = fr_data(1:nReps);  % take the first nReps number of trials, ignore the rest
+	end
+      end   % if nTrials isn't the same as nReps
       switch dur
         case 1,
-	  txtS(cmapr, cmapcB:cmapcE) = fr_on_norm(stim_idx);
-	  ztxtS(cmapr, cmapcB:cmapcE) = zfr_on(stim_idx);
+	  txtS(cmapr, cmapcB:cmapcE) = fr_data;
+	  ztxtS(cmapr, cmapcB:cmapcE) = fr_data;
+	  snamesS(cmapr,stat) = stimnames(s);  % cell array of stim names shaped like these matrices
 	case 2,
-	  txtL(cmapr, cmapcB:cmapcE) = fr_on_norm(stim_idx);
-	  ztxtL(cmapr, cmapcB:cmapcE) = zfr_on(stim_idx);
+	  txtL(cmapr, cmapcB:cmapcE) = fr_data;
+	  ztxtL(cmapr, cmapcB:cmapcE) = fr_data;
+	  snamesL(cmapr,stat) = stimnames(s);  % cell array of stim names shaped like these matrices
 	otherwise,
 	  error('%s: Stim %s has a broken duration.\n', mfilename, stim)
       end % switch dur
@@ -67,21 +79,21 @@ for s = 1:length(stimnames)
 
 end  % for loop on each stim name
 
-scalemin = 0.1*min(fr_on_norm(find(fr_on_norm)));
-scalemax = 1.5*max(fr_on_norm);
+% scalemin = 0.1*min(fr_on_norm(find(fr_on_norm)));
+% scalemax = 1.5*max(fr_on_norm);
 figure(1); clf; imagesc([ztxtS; inf(1,4*nReps); ztxtL])
 title(sprintf('Cluster %s Texture FR (zscore)',clu_fname(14:end-4)))
 xlabel(['Noise                     Marginals                    Full Stats                      Originals'])
 ylabel(['Wind   Star   Spar   Bub   App       Wind  Star    Spar    Bub     App'])
 fig_fname = fullfile('analysis','figures',birdsite_nametag, sprintf('ztxtFR_%s.png',clu_fname(14:end-4)) );
 saveas(gcf, fig_fname)
-figure(2); clf; imagesc([txtS; inf(1,4*nReps); txtL], [scalemin scalemax])
-title(sprintf('Cluster %s Texture FR n-fold change',clu_fname(14:end-4)))
-xlabel(['Noise                     Marginals                    Full Stats                      Originals'])
-ylabel(['Wind   Star   Spar   Bub   App       Wind  Star    Spar    Bub     App'])
-fig_fname = fullfile('analysis','figures',birdsite_nametag, sprintf('txtFR_%s.png',clu_fname(14:end-4)) );
-saveas(gcf, fig_fname)
-
+% figure(2); clf; imagesc([txtS; inf(1,4*nReps); txtL], [scalemin scalemax])
+% title(sprintf('Cluster %s Texture FR n-fold change',clu_fname(14:end-4)))
+% xlabel(['Noise                     Marginals                    Full Stats                      Originals'])
+% ylabel(['Wind   Star   Spar   Bub   App       Wind  Star    Spar    Bub     App'])
+% fig_fname = fullfile('analysis','figures',birdsite_nametag, sprintf('txtFR_%s.png',clu_fname(14:end-4)) );
+% saveas(gcf, fig_fname)
+ 
 % subplot(3,1,1); imshow(motifs,[scalemin,scalemax])
 % subplot(3,1,2); imshow(txtS,[scalemin,scalemax])
 % subplot(3,1,3); imshow(txtL,[scalemin,scalemax])
