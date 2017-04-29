@@ -36,7 +36,7 @@ for cnum = 1:numel(ww.mat)  % going through good clusters
   clu = str2double(cluStr);
 
   %% I. SPIKE RATE (only while stimulus on)
-  [base, txtS, txtL, ztxtS, ztxtL, snamesS, snamesL] = processClusterFR(clu_fname, birdsite_nametag,nReps);
+  [base, txtS, txtL, snamesS, snamesL] = processClusterFR(clu_fname, birdsite_nametag,nReps);
   if cnum == 1
     fprintf(fid,strjoin(snamesS','\t'));
     fprintf(fid,strjoin(snamesS','\t'));  %%%% obvious crap! long has empty cellstr for stimuli not presented TODO FIXME
@@ -46,42 +46,25 @@ for cnum = 1:numel(ww.mat)  % going through good clusters
   end
   txtS(~isfinite(txtS)) = NaN;  % missing data = nan
   txtL(~isfinite(txtL)) = NaN;
-  ztxtS(~isfinite(ztxtS)) = NaN;
-  ztxtL(~isfinite(ztxtL)) = NaN;
   ByFamS = reshape(txtS', nReps*nStats*nExemp ,nFams);  % group short stimuli by family
   ByFamL = reshape(txtL', nReps*nStats*nExemp ,nFams);
   ByStatS = reshape(txtS, nReps*nFams*nExemp ,nStats);	% group short stimuli by stat model
   ByStatL = reshape(txtL, nReps*nFams*nExemp ,nStats);
-  zByFamS = reshape(ztxtS', nReps*nStats*nExemp ,nFams);  % same for zscored FR data
-  zByFamL = reshape(ztxtL', nReps*nStats*nExemp ,nFams);
-  zByStatS = reshape(ztxtS, nReps*nFams*nExemp ,nStats);
-  zByStatL = reshape(ztxtL, nReps*nFams*nExemp ,nStats);
 
-  %% cluster-level means: for each statistic, by long / short / both
-  birdsiteFamS(cnum,:) = nanmean(ByFamS);      
-  birdsiteFamL(cnum,:) = nanmean(ByFamL);
-  birdsiteStatS(cnum,:) = nanmean(ByStatS);
-  birdsiteStatL(cnum,:) = nanmean(ByStatL);
-  zbirdsiteFamS(cnum,:) = nanmean(zByFamS);    
-  zbirdsiteFamL(cnum,:) = nanmean(zByFamL);
-  zbirdsiteStatS(cnum,:) = nanmean(zByStatS);
-  zbirdsiteStatL(cnum,:) = nanmean(zByStatL);
-  n_bsFam(cnum,:)  = nanmean([ByFamS;   ByFamL]);  % mean collapsing across long and short
-  n_bsStat(cnum,:) = nanmean([ByStatS;  ByStatL]);
-  z_bsFam(cnum,:)  = nanmean([zByFamS;  zByFamL]);  % same for zscore
-  z_bsStat(cnum,:) = nanmean([zByStatS; zByStatL]);
+  %% cluster-level means: long / short / both
+  bsFamS(cnum,:) = nanmean(ByFamS);      
+  bsFamL(cnum,:) = nanmean(ByFamL);
+  bsStatS(cnum,:) = nanmean(ByStatS);
+  bsStatL(cnum,:) = nanmean(ByStatL);
+  bsFam(cnum,:)  = nanmean([ByFamS;   ByFamL]);  % mean collapsing across long and short
+  bsStat(cnum,:) = nanmean([ByStatS;  ByStatL]);
+
   %---- for cluster x exemplar dataframe (avg over trials only)
-  n_fold_exemp(cnum,:) = nanmean( reshape([txtS;txtL]', nReps, nStats*nExemp*nFams*2));  % 2 is nDurations
-  zscore_exemp(cnum,:) = nanmean( reshape([ztxtS;ztxtL]', nReps, nStats*nExemp*nFams*2));
+  zscore_exemp(cnum,:) = nanmean( reshape([txtS;txtL]', nReps, nStats*nExemp*nFams*2)); % 2 is nDurations
   fprintf(fid,'%s\t%s\t%d\t%d\t%d\t%s\t data for each exemplar!\n',birdsite_nametag,birdsite_nametag,2500,1500,2700,cluStr);
-  for exem=1:numel(txtS)
-
-%  fprintf(fid,deal(zscore_exemp(cnum,:)))
-  end
-
-%   [figh,ByFam,ByStat] = boxplotClusterFR(txtS,txtL,nReps);
-%   figure(figh); suptitle([birdsite_nametag ' Clu ' cluStr])
-%   saveas(figh, fullfile('analysis','figures',birdsite_nametag, ['boxFR_' cluStr '.png']));
+%  for exem=1:numel(txtS)
+%    fprintf(fid,deal(zscore_exemp(cnum,:)))
+%  end
 
 %   %% II. Select Auditory Units
 %   psthbinsize = 0.020;   % in seconds, 20ms bins!
@@ -101,33 +84,19 @@ end % for each cluster
 fclose(fid);
 assignin('base','zscore_exemp',zscore_exemp)
 
-bsFamS = [birdsiteFamS zbirdsiteFamS];
-bsFamL = [birdsiteFamL zbirdsiteFamL];
-bsStatS = [birdsiteStatS zbirdsiteStatS];
-bsStatL = [birdsiteStatL zbirdsiteStatL];
-
-
 grandboxplots_figh=figure();
-
-
-%%%%% zscored violins
-subplot(1,2,1), hold on % by family
-distributionPlot(gca,zbirdsiteFamS,'widthDiv',[2 1],'histOri','left','color','g','showMM',4,'xNames',texturelabels)
-distributionPlot(gca,zbirdsiteFamL,'widthDiv',[2 2],'histOri','right','color','c','showMM',4)
-boxplot(z_bsFam,'labels',texturelabels)
-title('By Texture Family')
-axis tight 
+subplot(1,2,1), title('By Texture Family'), hold on
+distributionPlot(gca,bsFamS,'widthDiv',[2 1],'histOri','left','color','g','showMM',4,'xNames',texturelabels)
+distributionPlot(gca,bsFamL,'widthDiv',[2 2],'histOri','right','color','c','showMM',4)
+boxplot(bsFam,'labels',texturelabels), axis tight 
 ylabel('z-scored Firing Rate')
-subplot(1,2,2), hold on % by stat model
-distributionPlot(gca,zbirdsiteStatS,'widthDiv',[2 1],'histOri','left','color','g','showMM',4,'xNames',statlabels)
-distributionPlot(gca,zbirdsiteStatL,'widthDiv',[2 2],'histOri','right','color','c','showMM',4)
-boxplot(z_bsStat,'labels',statlabels)
-axis tight 
-title('By Statistical Model')
+subplot(1,2,2), title('By Statistical Model'), hold on
+distributionPlot(gca,bsStatS,'widthDiv',[2 1],'histOri','left','color','g','showMM',4,'xNames',statlabels)
+distributionPlot(gca,bsStatL,'widthDiv',[2 2],'histOri','right','color','c','showMM',4)
+boxplot(bsStat,'labels',statlabels), axis tight 
 figure(grandboxplots_figh); suptitle([birdsite_nametag ' Grand Mean cluster firing rates'])
-saveas(grandboxplots_figh, fullfile('analysis','figures',birdsite_nametag, ['vlnFR_grandmean.png']));
+saveas(grandboxplots_figh, fullfile('analysis','figures',birdsite_nametag, ['vlnFR_birdsitegrandmean.png']));
 
 %-------- old but useful
 % tAx = -2 + psthbinsize*[1:size(SILpsth,2)]; subplot(7,4,cnum), plot(tAx, SILpsth), title(['Cluster ' cluStr]), axis tight
 % subplot(1,2,1),boxplot(birdsiteFam,'labels',texturelabels)   %,'plotstyle','compact')
-% birdsiteFamS_means = nanmean(bsFamS)  % site-level means, lefthand = normalized change, righthand = zscored FR
