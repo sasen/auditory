@@ -1,12 +1,15 @@
-function [base_fr_trials, txtS, txtL, snamesS, snamesL] = processClusterFR(clu_fname,birdsite_nametag,nReps)
-% function [base_fr_trials, txtS, txtL, snamesS, snamesL] = processClusterFR(clu_fname,birdsite_nametag,nReps)
-% processClusterFR computes FRs 2 ways
+function [base_fr_trials, txtS, txtL, snamesS, snamesL] = processClusterFR(clu_fname,birdsite_nametag,nReps,PLOT_COLORMAPS)
+% function [base_fr_trials, txtS, txtL, snamesS, snamesL] = processClusterFR(clu_fname,birdsite_nametag,nReps,PLOT_COLORMAPS)
+% processClusterFR computes zscored firing rates
 % clu_fname: str, matfile like 'sptrains_unit31.mat'
 % birdsite_nametag: str, directory, like B1040_3
 % nReps: int, approx number of repetitions for each trial, eg 5 or 10. (will truncate more, and inf-pad if fewer)
-% base_fr_trials: silent-trial firing rates
-% txtS, txtL: short, long texture firing rates while stim is on (zscore)
+% PLOT_COLORMAPS: logical 0=skip plotting, 1=plot and save FR colormaps for each cluster
+% base_fr_trials: numeric vector, silent-trial firing rates (zscore)
+% txtS, txtL: 15x4*nReps numeric, short/long texture firing rates while stim is on (zscore). Very carefully structured for colormaps!
+% snamesS, snamesL: stimuli names for short/long stimuli, shaped like the txtS and txtL matrices
 %% TODO FIXME SS : deal with birdsites with misnamed stimuli! eg verify length in tTimes
+%% TODO FIXME SS : pass nExemp, nFams, nStats as args
 
 baselineStim = 'silence_40k_5s';  % name of stimulus, will be normalizing by this
 
@@ -69,9 +72,11 @@ for s = 1:length(stimnames)
   end % sorting through tags
 end  % for loop on each stim name
 
-figure(1); clf; imagesc([txtS; inf(1,4*nReps); txtL])
-title(sprintf('Cluster %s Texture FR (zscore)',clu_fname(14:end-4)))
-xlabel(['Noise                     Marginals                    Full Stats                      Originals'])
-ylabel(['Wind   Star   Spar   Bub   App       Wind  Star    Spar    Bub     App'])
-fig_fname = fullfile('analysis','figures',birdsite_nametag, sprintf('ztxtFR_%s.png',clu_fname(14:end-4)) );
-saveas(gcf, fig_fname)
+if PLOT_COLORMAPS  % optional make & save figures
+  figure(1); clf; imagesc([txtS; inf(1,4*nReps); txtL])
+  title(sprintf('Cluster %s Texture FR (zscore)',clu_fname(14:end-4)))
+  xlabel(['Noise                     Marginals                    Full Stats                      Originals'])
+  ylabel(['Wind   Star   Spar   Bub   App       Wind  Star    Spar    Bub     App'])
+  fig_fname = fullfile('analysis','figures',birdsite_nametag, sprintf('ztxtFR_%s.png',clu_fname(14:end-4)) );
+  saveas(gcf, fig_fname)
+end     % if plotting flag

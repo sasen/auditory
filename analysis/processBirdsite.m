@@ -1,15 +1,15 @@
-function [grandboxplots_figh,bsFamS,bsFamL,bsStatS,bsStatL] = processBirdsite(birdsite_nametag,nReps)
-% function [grandboxplots_figh,bsFamS,bsFamL,bsStatS,bsStatL] = processBirdsite(birdsite_nametag,nReps)
+function [grandboxplots_figh,bsFamS,bsFamL,bsStatS,bsStatL] = processBirdsite(birdsite_nametag,nReps,PLOT_COLORMAPS)
+% function [grandboxplots_figh,bsFamS,bsFamL,bsStatS,bsStatL] = processBirdsite(birdsite_nametag,nReps,PLOT_COLORMAPS)
 % Boxplots and cluster-level Firing Rate means for a birdsite, broken down by family and by stat model
-% Also plots each cluster's mean FR by trial, but the psths are currently turned off. 
+% Also can plot each cluster's mean FR by trial, but the psths are currently turned off. 
 % In: birdsite_nametag (string): DATA directory name for sorted data e.g., 'B1040_3ts'
 %     nReps (int): number of repetitions of each texture exemplar
+%     PLOT_COLORMAPS (logical): 0=skip plotting, 1=plot and save FR colormaps for each cluster
 % Out: grandboxplots_figh (int): figure handle for the grand box plot for this birdsite
 %      bsFamS/L (#good_clusters x #familiesx2 float): mean cluster FR by family
 %      bsStatS/L (#good_clusters x 8 float): mean cluster FR by stat model
 %       	S = short textures, L = long (5s) textures
-%		Left cols = baseline-normalized nfold change; Right cols = zscored raw FR
-% Eventually this has to handle the diversity of stimuli & numtrials better %% TODO!
+% Eventually this has to handle the diversity of stimuli better %% TODO!
 % NB: this should be run from expts dir in github
 s=pwd; [~,expdir]=fileparts(s);
 assert(strcmp(expdir,'expts'),'%s: Must be run from expts directory.\n',mfilename);
@@ -32,11 +32,14 @@ fprintf(fid, 'bird\tsite\tz\tlm\tap\tcluID\t');  % print dataframe column names 
 ww = what(datdir);
 for cnum = 1:numel(ww.mat)  % going through good clusters
   clu_fname = ww.mat{cnum};
+  if isempty(strfind(clu_fname,'sptrains_unit'))  % make sure this matfile is a cluster's rasters
+    continue;   %% skip other weird matfiles
+  end
   cluStr = clu_fname(14:end-4);
   clu = str2double(cluStr);
 
   %% I. SPIKE RATE (only while stimulus on)
-  [base, txtS, txtL, snamesS, snamesL] = processClusterFR(clu_fname, birdsite_nametag,nReps);
+  [base, txtS, txtL, snamesS, snamesL] = processClusterFR(clu_fname, birdsite_nametag,nReps,PLOT_COLORMAPS);
   if cnum == 1
     fprintf(fid,strjoin(snamesS','\t'));
     fprintf(fid,strjoin(snamesS','\t'));  %%%% obvious crap! long has empty cellstr for stimuli not presented TODO FIXME
