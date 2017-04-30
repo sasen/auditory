@@ -13,39 +13,28 @@ nFams = numel(texturelabels);
 nStats = numel(statlabels);
 nDurs = numel(durlabels);
 
-allFamS = []; allFamL = []; allStatS = []; allStatL = [];
+allFam = []; allStat = []; allDur = [];
 nSites = numel(approxReps);
 for sitenum = 1:nSites
   birdsite_nametag = nametags{sitenum};
   nReps = approxReps(sitenum);
   fprintf('%s: ~%d reps, ',birdsite_nametag,nReps)
-  [~,bsFamS,bsFamL,bsStatS,bsStatL] = processBirdsite(birdsite_nametag,nReps,0);  % no plotting!
-  nClu(sitenum) = size(bsFamS,1);
+  bs = processBirdsite(birdsite_nametag,nReps,0);  % no plotting!
+  nClu(sitenum) = size(bs.durMean,1);
   fprintf('%d clusters\n',nClu(sitenum))
 
-  allFamS = [allFamS; bsFamS];
-  allFamL = [allFamL; bsFamL];
-  allStatS = [allStatS; bsStatS];
-  allStatL = [allStatL; bsStatL];
+  allFam = [allFam; bs.famMean];
+  allStat = [allStat; bs.statMean];
+  allDur = [allDur; bs.durMean];
+  % ignoring Ns and standard deviations for now, but they would be bs.xxxNs and bs.xxxStd
 end
 
-% does it matter if I do this by Fam, Stat, or neither?
-allDur = [mean(allFamS,2) mean(allFamL,2)];
-allDur2 = [mean(allStatS,2) mean(allStatL,2)];
-
-allDur'
-allDur2'
-
 allfh = figure();
-subplot(1,3,1), title('By Texture Family'), hold on
-distributionPlot(gca,allFamS,'widthDiv',[2 1],'histOri','left','color','g','showMM',4,'xNames',texturelabels)
-distributionPlot(gca,allFamL,'widthDiv',[2 2],'histOri','right','color','c','showMM',4)
-%     boxplot(allFam,'labels',texturelabels), axis tight
+subplot(1,3,1), title('By Texture Family')
+distributionPlot(gca,allFam,'color','g','showMM',4,'xNames',texturelabels)
 ylabel('z-scored Firing Rate')
-subplot(1,3,2), title('By Statistical Model'), hold on
-distributionPlot(gca,allStatS,'widthDiv',[2 1],'histOri','left','color','g','showMM',4,'xNames',statlabels)
-distributionPlot(gca,allStatL,'widthDiv',[2 2],'histOri','right','color','c','showMM',4)
-%     boxplot(allStat,'labels',statlabels), axis tight
+subplot(1,3,2), title('By Statistical Model')
+distributionPlot(gca,allStat,'color','m','showMM',4,'xNames',statlabels)
 subplot(1,3,3), title('By Duration')
 distributionPlot(gca,allDur,'color','k','showMM',4,'xNames',durlabels)
 suptitle(sprintf('Cluster Mean Firing Rates, %d sites, N = %d clusters',nSites,sum(nClu)) )

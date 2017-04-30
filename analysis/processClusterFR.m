@@ -1,5 +1,5 @@
-function [base_fr_trials, txtS, txtL, snamesS, snamesL] = processClusterFR(clu_fname,birdsite_nametag,nReps,PLOT_COLORMAPS)
-% function [base_fr_trials, txtS, txtL, snamesS, snamesL] = processClusterFR(clu_fname,birdsite_nametag,nReps,PLOT_COLORMAPS)
+function [base_fr_trials, txtS, txtL, snamesS, snamesL,textures] = processClusterFR(clu_fname,birdsite_nametag,nReps,PLOT_COLORMAPS)
+% function [base_fr_trials, txtS, txtL, snamesS, snamesL,textures] = processClusterFR(clu_fname,birdsite_nametag,nReps,PLOT_COLORMAPS)
 % processClusterFR computes zscored firing rates
 % clu_fname: str, matfile like 'sptrains_unit31.mat'
 % birdsite_nametag: str, directory, like B1040_3
@@ -8,6 +8,7 @@ function [base_fr_trials, txtS, txtL, snamesS, snamesL] = processClusterFR(clu_f
 % base_fr_trials: numeric vector, silent-trial firing rates (zscore)
 % txtS, txtL: 15x4*nReps numeric, short/long texture firing rates while stim is on (zscore). Very carefully structured for colormaps!
 % snamesS, snamesL: stimuli names for short/long stimuli, shaped like the txtS and txtL matrices
+% textures: dur,fam,stat,id,reps
 %% TODO FIXME SS : deal with birdsites with misnamed stimuli! eg verify length in tTimes
 %% TODO FIXME SS : pass nExemp, nFams, nStats as args
 
@@ -27,6 +28,7 @@ base_fr_trials = zfr_on(base_idx);	% grab firing rate of those trials
 %% data structures for FR on each texture trial
 txtS = inf(3*5,4*nReps); % sorry FIXME
 txtL = inf(3*5,4*nReps); % sorry FIXME
+textures = NaN(2,5,4,3,nReps);
 
 %% Go through each stimulus
 stimnames = unique(stims);
@@ -45,17 +47,18 @@ for s = 1:length(stimnames)
   else				     %% 3. handle textures
     [isok, fam, stat, dur, id, cmapr, cmapcB, cmapcE] = parseStimName(stim,nReps);  
     if isok
-%      textures(dur,fam,stat,id,:) = fr_data
-      %% and make a colormap-able figure for each duration      
+      %% first, deal with missing or too much data!
       nTrials = numel(stim_idx);
       if nTrials ~= nReps
         fprintf('%s: Warning, stim %s had %d trials rather than %d\n',mfilename,stim,nTrials,nReps);
         if nTrials < nReps	  
-          fr_data = [reshape(fr_data,1,nTrials) inf(1,nReps-nTrials)];  % pad with infinities
+          fr_data = [reshape(fr_data,1,nTrials) nan(1,nReps-nTrials)];  % pad with infinities
         else
           fr_data = fr_data(1:nReps);  % take the first nReps number of trials, ignore the rest
 	end
       end   % if nTrials isn't the same as nReps
+      textures(dur,fam,stat,id,:) = fr_data;
+      %% and make a colormap-able figure for each duration      
       switch dur
         case 1,
 	  txtS(cmapr, cmapcB:cmapcE) = fr_data;
@@ -73,6 +76,7 @@ for s = 1:length(stimnames)
 end  % for loop on each stim name
 
 if PLOT_COLORMAPS  % optional make & save figures
+%% TODO the infs are currently NaNs, so these plots will not work.
   figure(1); clf; imagesc([txtS; inf(1,4*nReps); txtL])
   title(sprintf('Cluster %s Texture FR (zscore)',clu_fname(14:end-4)))
   xlabel(['Noise                     Marginals                    Full Stats                      Originals'])
