@@ -27,7 +27,7 @@ mkdir(resdir);   % in case doesn't already exist
 
 tsvfilename = fullfile(resdir,[birdsite_nametag,'_zfr_dataframe.txt']);
 fid = fopen(tsvfilename,'w');
-fprintf(fid, 'bird\tsite\tz\tlm\tap\tcluID\t');  % print dataframe column names (except stimnames)
+fprintf(fid, 'bird\tsite\tz\tlm\tap\tcluID\tstimname\tstat\tdur\tfamily\trep\tfiringrate\n');  % print dataframe column names
 
 ww = what(datdir);
 for cnum = 1:numel(ww.mat)  % going through good clusters
@@ -39,14 +39,7 @@ for cnum = 1:numel(ww.mat)  % going through good clusters
   clu = str2double(cluStr);
 
   %% I. SPIKE RATE (only while stimulus on)
-  [base, txtS, txtL, snamesS, snamesL, textures] = processClusterFR(clu_fname, birdsite_nametag,nReps,PLOT_COLORMAPS);
-  if cnum == 1
-    fprintf(fid,strjoin(snamesS','\t'));
-    fprintf(fid,strjoin(snamesS','\t'));  %%%% obvious crap! long has empty cellstr for stimuli not presented TODO FIXME
-%    assignin('base','snamesS',snamesS)
-%    assignin('base','snamesL',snamesL)
-    fprintf(fid,'some stim names!\n')
-  end
+  [base, txtS, txtL, snamesS, snamesL, textures] = processClusterFR(clu_fname, birdsite_nametag,nReps,PLOT_COLORMAPS,fid);
   txtS(~isfinite(txtS)) = NaN;  % missing data = nan
   txtL(~isfinite(txtL)) = NaN;
   ByFamS = reshape(txtS', nReps*nStats*nExemp ,nFams);  % group short stimuli by family
@@ -67,13 +60,6 @@ for cnum = 1:numel(ww.mat)  % going through good clusters
   [bs.statMean(cnum,:), bs.statStd(cnum,:), bs.statNs(cnum,:)] = avgByTextureVariable(textures,3); % by statmodel
 
 
-  %---- for cluster x exemplar dataframe (avg over trials only)
-  zscore_exemp(cnum,:) = nanmean( reshape([txtS;txtL]', nReps, nStats*nExemp*nFams*2)); % 2 is nDurations
-  fprintf(fid,'%s\t%s\t%d\t%d\t%d\t%s\t data for each exemplar!\n',birdsite_nametag,birdsite_nametag,2500,1500,2700,cluStr);
-%  for exem=1:numel(txtS)
-%    fprintf(fid,deal(zscore_exemp(cnum,:)))
-%  end
-
 %   %% II. Select Auditory Units
 %   psthbinsize = 0.020;   % in seconds, 20ms bins!
 %   [SILpsth, sTEXpsth, lTEXpsth, sMOTpsth, lMOTpsth] = processCluster(fullfile(datdir,clu_fname), psthbinsize,nReps);
@@ -90,7 +76,6 @@ for cnum = 1:numel(ww.mat)  % going through good clusters
 end % for each cluster
 
 fclose(fid);
-assignin('base','zscore_exemp',zscore_exemp);
 
 grandboxplots_figh=figure();
 subplot(1,2,1), title('By Texture Family'), hold on

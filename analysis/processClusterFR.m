@@ -1,10 +1,11 @@
-function [base_fr_trials, txtS, txtL, snamesS, snamesL,textures] = processClusterFR(clu_fname,birdsite_nametag,nReps,PLOT_COLORMAPS)
-% function [base_fr_trials, txtS, txtL, snamesS, snamesL,textures] = processClusterFR(clu_fname,birdsite_nametag,nReps,PLOT_COLORMAPS)
+function [base_fr_trials, txtS, txtL, snamesS, snamesL,textures] = processClusterFR(clu_fname,birdsite_nametag,nReps,PLOT_COLORMAPS,fid)
+% function [base_fr_trials, txtS, txtL, snamesS, snamesL,textures] = processClusterFR(clu_fname,birdsite_nametag,nReps,PLOT_COLORMAPS,fid)
 % processClusterFR computes zscored firing rates
 % clu_fname: str, matfile like 'sptrains_unit31.mat'
 % birdsite_nametag: str, directory, like B1040_3
 % nReps: int, approx number of repetitions for each trial, eg 5 or 10. (will truncate more, and inf-pad if fewer)
 % PLOT_COLORMAPS: logical 0=skip plotting, 1=plot and save FR colormaps for each cluster
+% fid: int, open file handle for writing dataframe
 % base_fr_trials: numeric vector, silent-trial firing rates (zscore)
 % txtS, txtL: 15x4*nReps numeric, short/long texture firing rates while stim is on (zscore). Very carefully structured for colormaps!
 % snamesS, snamesL: stimuli names for short/long stimuli, shaped like the txtS and txtL matrices
@@ -17,6 +18,8 @@ baselineStim = 'silence_40k_5s';  % name of stimulus, will be normalizing by thi
 load(fullfile('DATA',birdsite_nametag,clu_fname));
 tTimes = round(tTimes,2,'significant');   %% unique(tTimes(:,3)); % 0.8, 1, 5, 6, 7
 stims = cellstr(stims);  % convert char array to cell array of char vectors
+dframeStrPart = sprintf('%s\t%s\t%d\t%d\t%d\t%s\t',birdsite_nametag,birdsite_nametag,2500,1500,2700,clu_fname(14:end-4));
+
 
 %% zscore firing rates (by all cluster responses)   %% TODO should I zscore by the trials i'm actually analyzing? THINK!
 zfr_on = zscore(fr(:,2)); % fr rows: [pre on post]
@@ -36,9 +39,15 @@ for s = 1:length(stimnames)
   stim = stimnames{s};
   stim_idx = find(strcmp(stim,stims)); % trials using that stim
   fr_data = zfr_on(stim_idx); % firing rates of these trials
+  nTrials = numel(stim_idx);
 
   %%% Create and go through tag particles
   tags = strsplit(stim,'_');
+  %% print to dataframe
+  for trNum = 1:nTrials
+    fprintf(fid, '%s%s\t%s\t%s\t%s\t%d\t%f\n', dframeStrPart, stim, tags{1}, tags{2}, tags{3}, trNum, fr_data(trNum));  
+  end   % going through trials
+
   motifnum = str2double(tags{1});    % if it's a motif, get its number.
   if isfinite(motifnum)		     %% 1. handle motifs
     motifs(:,motifnum) = fr_data;
@@ -48,7 +57,6 @@ for s = 1:length(stimnames)
     [isok, fam, stat, dur, id, cmapr, cmapcB, cmapcE] = parseStimName(stim,nReps);  
     if isok
       %% first, deal with missing or too much data!
-      nTrials = numel(stim_idx);
       if nTrials ~= nReps
         fprintf('%s: Warning, stim %s had %d trials rather than %d\n',mfilename,stim,nTrials,nReps);
         if nTrials < nReps	  
