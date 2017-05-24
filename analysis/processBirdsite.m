@@ -27,7 +27,10 @@ mkdir(resdir);   % in case doesn't already exist
 
 tsvfilename = fullfile(resdir,[birdsite_nametag,'_zfr_dataframe.txt']);
 fid = fopen(tsvfilename,'w');
-fprintf(fid, 'bird\tbirdsite\tz\tlm\tap\tcluID\tstimname\tstat\tdur\tfamily\trep\tfiringrate\n');  % print dataframe column names
+fprintf(fid, 'bird\tbirdsite\tZ\tML\tAP\tcluID\tstimname\tstat\tdur\tfamily\trep\tfiringrate\n');  % print dataframe column names
+
+birdID = strsplit(birdsite_nametag,'_');  % actually birdID{1}
+dfStr_birdsite = sprintf('%s\t%s\t%d\t%d\t%d\t',birdID{1},birdsite_nametag,2500,1500,2700);
 
 ww = what(datdir);
 for cnum = 1:numel(ww.mat)  % going through good clusters
@@ -36,10 +39,10 @@ for cnum = 1:numel(ww.mat)  % going through good clusters
     continue;   %% skip other weird matfiles
   end
   cluStr = clu_fname(14:end-4);
-  clu = str2double(cluStr);
+  dfStr_clu = sprintf('%s%s\t', dfStr_birdsite, cluStr);
 
   %% I. SPIKE RATE (only while stimulus on)
-  [base, txtS, txtL, snamesS, snamesL, textures] = processClusterFR(clu_fname, birdsite_nametag,nReps,PLOT_COLORMAPS,fid);
+  [base, txtS, txtL, snamesS, snamesL, textures] = processClusterFR(clu_fname, birdsite_nametag,nReps,PLOT_COLORMAPS,fid,dfStr_clu);
   txtS(~isfinite(txtS)) = NaN;  % missing data = nan
   txtL(~isfinite(txtL)) = NaN;
   ByFamS = reshape(txtS', nReps*nStats*nExemp ,nFams);  % group short stimuli by family
@@ -65,6 +68,7 @@ for cnum = 1:numel(ww.mat)  % going through good clusters
 %   [SILpsth, sTEXpsth, lTEXpsth, sMOTpsth, lMOTpsth] = processCluster(fullfile(datdir,clu_fname), psthbinsize,nReps);
 
 %  %% III. PSTH (including pre/post period)
+%  clu = str2double(cluStr);
 %  psthbinsize = 0.002;   % in seconds, 2ms bins!
 %  smoothsize = 25;   % odd number of bins for PSTH smoothing
 %  [SILpsth, sTEXpsth, lTEXpsth, sMOTpsth, lMOTpsth] = processCluster(fullfile(datdir,clu_fname), psthbinsize,nReps);

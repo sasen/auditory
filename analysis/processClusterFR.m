@@ -1,11 +1,12 @@
-function [base_fr_trials, txtS, txtL, snamesS, snamesL,textures] = processClusterFR(clu_fname,birdsite_nametag,nReps,PLOT_COLORMAPS,fid)
-% function [base_fr_trials, txtS, txtL, snamesS, snamesL,textures] = processClusterFR(clu_fname,birdsite_nametag,nReps,PLOT_COLORMAPS,fid)
+function [base_fr_trials, txtS, txtL, snamesS, snamesL,textures] = processClusterFR(clu_fname,birdsite_nametag,nReps,PLOT_COLORMAPS,fid,dfStr_clu)
+% function [base_fr_trials, txtS, txtL, snamesS, snamesL,textures] = processClusterFR(clu_fname,birdsite_nametag,nReps,PLOT_COLORMAPS,fid,dfStr_clu)
 % processClusterFR computes zscored firing rates
 % clu_fname: str, matfile like 'sptrains_unit31.mat'
 % birdsite_nametag: str, directory, like B1040_3
 % nReps: int, approx number of repetitions for each trial, eg 5 or 10. (will truncate more, and inf-pad if fewer)
 % PLOT_COLORMAPS: logical 0=skip plotting, 1=plot and save FR colormaps for each cluster
 % fid: int, open file handle for writing dataframe
+% dfStr_clu: str (tsv), partial row of dataframe with info for this cluster
 % base_fr_trials: numeric vector, silent-trial firing rates (zscore)
 % txtS, txtL: 15x4*nReps numeric, short/long texture firing rates while stim is on (zscore). Very carefully structured for colormaps!
 % snamesS, snamesL: stimuli names for short/long stimuli, shaped like the txtS and txtL matrices
@@ -13,19 +14,15 @@ function [base_fr_trials, txtS, txtL, snamesS, snamesL,textures] = processCluste
 %% TODO FIXME SS : deal with birdsites with misnamed stimuli! eg verify length in tTimes
 %% TODO FIXME SS : pass nExemp, nFams, nStats as args
 
-baselineStim = 'silence_40k_5s';  % name of stimulus, will be normalizing by this
-
 load(fullfile('DATA',birdsite_nametag,clu_fname));
 tTimes = round(tTimes,2,'significant');   %% unique(tTimes(:,3)); % 0.8, 1, 5, 6, 7
 stims = cellstr(stims);  % convert char array to cell array of char vectors
-birdID = strsplit(birdsite_nametag,'_');
-dframeStrPart = sprintf('%s\t%s\t%d\t%d\t%d\t%s\t',birdID{1},birdsite_nametag,2500,1500,2700,clu_fname(14:end-4));
-
 
 %% zscore firing rates (by all cluster responses)   %% TODO should I zscore by the trials i'm actually analyzing? THINK!
 zfr_on = zscore(fr(:,2)); % fr rows: [pre on post]
 
-%% get baseline stats
+%% get baseline stats  %% defunct!!
+baselineStim = 'silence_40k_5s';
 base_idx = find(strcmp(baselineStim,stims));  % baseline trial index
 base_fr_trials = zfr_on(base_idx);	% grab firing rate of those trials
 
@@ -50,11 +47,11 @@ for s = 1:length(stimnames)
   elseif strcmp('silence',tags{1})   %% 2. skip silence
     % pass
   else				     %% 3. handle textures
-    [isok, fam, stat, dur, id, cmapr, cmapcB, cmapcE, stimdfStr] = parseStimName(stim,nReps);  
+    [isok, fam, stat, dur, id, cmapr, cmapcB, cmapcE, dfStr_stim] = parseStimName(stim,nReps);  
 
     %% print to dataframe
     for trNum = 1:nTrials
-      fprintf(fid, '%s%s%d\t%f\n', dframeStrPart, stimdfStr, trNum, fr_data(trNum));  
+      fprintf(fid, '%s%s%d\t%f\n', dfStr_clu, dfStr_stim, trNum, fr_data(trNum));  
     end   % going through trials
 
     if isok    %%% these are the ones that we have for most subjects
