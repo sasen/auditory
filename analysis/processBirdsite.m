@@ -27,7 +27,7 @@ mkdir(resdir);   % in case doesn't already exist
 
 tsvfilename = fullfile(resdir,[birdsite_nametag,'_zfr_dataframe.txt']);
 fid = fopen(tsvfilename,'w');
-fprintf(fid, 'bird\tsite\tz\tlm\tap\tcluID\tstimname\tstat\tdur\tfamily\trep\tfiringrate\n');  % print dataframe column names
+fprintf(fid, 'bird\tbirdsite\tz\tlm\tap\tcluID\tstimname\tstat\tdur\tfamily\trep\tfiringrate\n');  % print dataframe column names
 
 ww = what(datdir);
 for cnum = 1:numel(ww.mat)  % going through good clusters

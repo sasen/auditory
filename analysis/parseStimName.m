@@ -18,10 +18,12 @@ maxFam = 5; maxStat=4; maxDur=2; maxID=3;  % for colormap stuff
 
 tags = strsplit(stim,'_');
 if numel(tags)~=3 || numel(tags{2}) ~=2
-  fprintf(1,'This stimname either lacks 3 tags or 2-char middle tag: %s\n',stim)  
-  tags{1} = input('Enter stat (noise,marg,full,norm):', 's') 
-  tags{2} = input('Enter middle tag (s,l,7)+(1,2,3):', 's')
-  tags{3} = input('Enter family (Applause,BubWater,Sparrows,Starlings,Wind,Longsong,Flock1020):', 's')
+  clear tags;
+  fprintf(1,'This stimname either lacks 3 tags or 2-char middle tag: %s\n',stim);
+  tags{1} = input('Enter stat (noise,marg,full,norm):', 's');
+  tags{2} = input('Enter middle tag (s,l,7)+(1,2,3):', 's');
+  tags{3} = input('Enter family (Applause,BubWater,Sparrows,Starlings,Wind,Longsong,Flock1020):', 's');
+  stim = strjoin(tags,'_');
 end
 assert(numel(tags)==3, '%s: stim names require 3 tags, unlike this one... %s', mfilename, stim)
 assert(numel(tags{2})==2, '%s: middle tag needs 2 characters, unlike this one... %s', mfilename, tags{2})

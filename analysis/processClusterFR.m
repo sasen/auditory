@@ -18,7 +18,8 @@ baselineStim = 'silence_40k_5s';  % name of stimulus, will be normalizing by thi
 load(fullfile('DATA',birdsite_nametag,clu_fname));
 tTimes = round(tTimes,2,'significant');   %% unique(tTimes(:,3)); % 0.8, 1, 5, 6, 7
 stims = cellstr(stims);  % convert char array to cell array of char vectors
-dframeStrPart = sprintf('%s\t%s\t%d\t%d\t%d\t%s\t',birdsite_nametag,birdsite_nametag,2500,1500,2700,clu_fname(14:end-4));
+birdID = strsplit(birdsite_nametag,'_');
+dframeStrPart = sprintf('%s\t%s\t%d\t%d\t%d\t%s\t',birdID{1},birdsite_nametag,2500,1500,2700,clu_fname(14:end-4));
 
 
 %% zscore firing rates (by all cluster responses)   %% TODO should I zscore by the trials i'm actually analyzing? THINK!
