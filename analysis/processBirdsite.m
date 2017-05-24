@@ -27,10 +27,29 @@ mkdir(resdir);   % in case doesn't already exist
 
 tsvfilename = fullfile(resdir,[birdsite_nametag,'_zfr_dataframe.txt']);
 fid = fopen(tsvfilename,'w');
-fprintf(fid, 'bird\tbirdsite\tZ\tML\tAP\tcluID\tstimname\tstat\tdur\tfamily\trep\tfiringrate\n');  % print dataframe column names
+fprintf(fid, 'bird\tbirdsite\tAP\tML\tZ\tcluID\tstimname\tstat\tdur\tfamily\trep\tfiringrate\n');  % print dataframe column names
 
+%% Set stereotactic coordinates for each site
+switch birdsite_nametag
+ case {'B987_5','B987_5ts'}
+  apmlz = [1200 1200 3700];    %% Lft
+ case {'B1040_1','B1040_1ts'}
+  apmlz = [1050  700 3200];    %% Lft
+ case {'B1040_2','B1040_2ts'}
+  apmlz = [1050  700 4200];    %% Lft
+ case {'B1040_3','B1040_3ts'}
+  apmlz = [1050  700 5000];    %% Lft
+ case {'B992_1','B992_1ts'}
+  apmlz = [1500  500 1900];    %% Rgt
+ case {'B953_2','B953_2ts'}
+  apmlz = [  20 1700 2926];    %% Lft
+ case {'B953_3','B953_3ts'}
+  apmlz = [  20 1700 3236];    %% Lft
+ otherwise
+  error('%s: Unknown birdsite %s!', mfilename, birdsite_nametag);
+end % switch bs
 birdID = strsplit(birdsite_nametag,'_');  % actually birdID{1}
-dfStr_birdsite = sprintf('%s\t%s\t%d\t%d\t%d\t',birdID{1},birdsite_nametag,2500,1500,2700);
+dfStr_birdsite = sprintf('%s\t%s\t%d\t%d\t%d\t',birdID{1},birdsite_nametag,apmlz(1),apmlz(2),apmlz(3));
 
 ww = what(datdir);
 for cnum = 1:numel(ww.mat)  % going through good clusters
