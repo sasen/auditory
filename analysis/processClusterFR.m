@@ -43,19 +43,20 @@ for s = 1:length(stimnames)
 
   %%% Create and go through tag particles
   tags = strsplit(stim,'_');
-  %% print to dataframe
-  for trNum = 1:nTrials
-    fprintf(fid, '%s%s\t%s\t%s\t%s\t%d\t%f\n', dframeStrPart, stim, tags{1}, tags{2}, tags{3}, trNum, fr_data(trNum));  
-  end   % going through trials
-
   motifnum = str2double(tags{1});    % if it's a motif, get its number.
   if isfinite(motifnum)		     %% 1. handle motifs
     motifs(:,motifnum) = fr_data;
   elseif strcmp('silence',tags{1})   %% 2. skip silence
     % pass
   else				     %% 3. handle textures
-    [isok, fam, stat, dur, id, cmapr, cmapcB, cmapcE] = parseStimName(stim,nReps);  
-    if isok
+    [isok, fam, stat, dur, id, cmapr, cmapcB, cmapcE, stimdfStr] = parseStimName(stim,nReps);  
+
+    %% print to dataframe
+    for trNum = 1:nTrials
+      fprintf(fid, '%s%s%d\t%f\n', dframeStrPart, stimdfStr, trNum, fr_data(trNum));  
+    end   % going through trials
+
+    if isok    %%% these are the ones that we have for most subjects
       %% first, deal with missing or too much data!
       if nTrials ~= nReps
         fprintf('%s: Warning, stim %s had %d trials rather than %d\n',mfilename,stim,nTrials,nReps);
@@ -78,8 +79,7 @@ for s = 1:length(stimnames)
 	  error('%s: Stim %s has a broken duration.\n', mfilename, stim)
       end % switch dur
     else
-%      fprintf('Skipping %s\n', stim);
-    end  % valid texture to analyze
+    end  % stim that we have in lots of subjects
   end % sorting through tags
 end  % for loop on each stim name
 

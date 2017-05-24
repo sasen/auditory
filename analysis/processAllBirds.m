@@ -2,8 +2,8 @@
 s=pwd; [~,expdir]=fileparts(s);
 assert(strcmp(expdir,'expts'),'%s: Must be run from expts directory.\n',mfilename);
 
-nametags = {'B1040_1ts', 'B1040_2ts', 'B1040_3ts'}      % , 'B953_2ts', 'B953_3ts', 'B992_1ts'};     % , 'B987_5ts'};
-approxReps = [5, 5, 10]   %, 15, 15, 15];     % , 30];
+nametags = {'B987_5ts'} %{'B1040_1ts', 'B1040_2ts', 'B1040_3ts', 'B953_2ts', 'B953_3ts', 'B992_1ts'};     % , 'B987_5ts'};
+approxReps = [30] %[5, 5, 10, 15, 15, 15];     % , 30];
 
 texturelabels = {'App','Bub','Spar','Star','Wind'};
 statlabels = {'Noise','Marg','Full','Orig'};
