@@ -1,8 +1,21 @@
-function [delRasters, del, lineX, lineY] = alignNormStim(audioDir, name, longChar, ras, numTrials)
-% function [delRasters, del, lineX, lineY] = alignNormStim(audioDir, name, longChar, ras, numTrials)
-% only assumptions are shortDur=0.8s, longDur = 5s (or 7s), and pre-post = 2s
-% OH, AND BIRDSITE_NAMETAG is hardcoded. Also cluID isn't included in figure titles, which is stupid
-birdsite_nametag = 'B1040_3ts';
+function [delRasters, del, lineX, lineY] = alignNormStim(audioDir, figsDir, name, longChar, ras, numTrials)
+%%%%%% this should be broken into multiple functions, and audio alignment need not be redone!
+% function [delRasters, del, lineX, lineY] = alignNormStim(audioDir, figsDir, name, longChar, ras, numTrials)
+% Figures out where short snippets fit into long norm/orig stimuli of family "name". produces audio alignment plots. 
+%    then plots rasters for trials with those short and long norm stimuli (by family), 
+%    delaying the short ones to see if they align to the long raster!
+% Only assumptions are shortDur=0.8s, longDur = 5s (or 7s), and pre-post = 2s
+% audioDir: path to audio wavfiles for this birdsite
+% figsDir: where you want aligned rasters saved (for a cell)
+% name: name of the texture family
+% longChar: either 'l' long/5s or '7' 7s, because bubbling water's long stim wasn't clipped properly
+% ras: rasters (spiketrains) for one cell
+% numTrials: number of trials of each stimulus type (for this family's norm stimuli)
+
+figsPath = strsplit(figsDir, filesep);
+cellStr = figsPath{end};
+birdsite = figsPath{end-2};
+
 shortDur = 0.8;  % seconds
 xprepost = 2;
 switch longChar
@@ -55,7 +68,7 @@ suptitle(['Audio Alignment for ' name])
 
 rasterFH = figure();
 plotSpikeRaster(delRasters,'PlotType','vertline','XLimForCell',[-xprepost xmax]); hold on
-title(['Delayed Raster Alignment for ' name])
+title(strjoin({'Delayed Raster Alignment for ',name,birdsite,cellStr}, ' '));
 longX = [0,0; xmax-xprepost,xmax-xprepost];
 longY = [1,numTrials(1); 1,numTrials(1)];
 line(longX',longY','LineWidth',2,'Color','green')
@@ -71,5 +84,6 @@ for ee = 1:numExemplars
   lineY = [lineY; exemY];   
 end % for ee
 
-saveas(audioFH, fullfile('analysis','figures',birdsite_nametag, ['audioAlign_' name '.png']));
-saveas(rasterFH, fullfile('analysis','figures',birdsite_nametag, ['rasterAlign_' name '.png']));  % TODO: clu ID needed!
+saveas(audioFH, fullfile(fullfile(figsPath{1:end-1}), ['audioAlign_' name '.png']));
+close(audioFH)
+saveas(rasterFH, fullfile(figsDir, [strjoin({'rasterAlign_',name,birdsite,cellStr},'_') '.png']))
